@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 
 const LoginSchema = new mongoose.Schema({
   email: {
-    type: "text",
+    type: String,
     required: true,
   },
   password: {
-    type: "text",
+    type: String,
     required: true,
   },
 });
