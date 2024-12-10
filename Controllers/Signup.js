@@ -1,49 +1,43 @@
 import bcrypt from "bcrypt";
 import validator from "validator";
-import SignupModel from "../Models/Signup.js";
-
-//signup controller
+import userModel from "../Models/Signup.js";
 
 const registerUser = async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, password, name } = req.body;
 
     //check if user already exist
 
-    const userExist = await SignupModel.findOne({ email });
-    if (userExist) {
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
       return res.json({ success: false, message: "User already exist" });
     }
 
-    //validate the email and password
+    //validate the email
 
     if (!validator.isEmail(email)) {
-      return res.json({
-        success: false,
-        message: "Please enter a valid email",
-      });
-    }
-    if (password.length < 8) {
-      return res.json({
-        success: false,
-        message: "Please enter a valid password",
-      });
+      return res.json({ success: false, message: "Invalid email" });
     }
 
-    //hashing passwordusing bcrypt
+    //password validation
+
+    if (password.length < 8) {
+      return res.json({ success: false, message: "Invalid password" });
+    }
+
+    //hashing password
 
     const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    //create new user
-
-    const newUser = new SignupModel({
+    //new user
+    const newUser = new userModel({
       name,
       email,
-      password: hashPassword,
+      password: hashedPassword,
     });
 
-    //save new user to database
+    //save user to DB
     const user = await newUser.save();
     return res.json({
       success: true,
