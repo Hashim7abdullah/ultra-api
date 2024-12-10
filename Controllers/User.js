@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import userModel from "../Models/User.js";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 
 //register user
 const registerUser = async (req, res) => {
@@ -9,26 +10,26 @@ const registerUser = async (req, res) => {
     const { email, password, name } = req.body;
 
     //check if user already exist
-
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-      return res.status(401).json({ success: false, message: "User already exist" });
+      return res
+        .status(401)
+        .json({ success: false, message: "User already exist" });
     }
 
     //validate the email
-
     if (!validator.isEmail(email)) {
       return res.status(401).json({ success: false, message: "Invalid email" });
     }
 
     //password validation
-
     if (password.length < 8) {
-      return res.status(401).json({ success: false, message: "Invalid password" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid password" });
     }
 
     //hashing password
-
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -54,15 +55,13 @@ const registerUser = async (req, res) => {
   }
 };
 
-
-//user login
+//USER LOGIN
 
 const logedUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     //user exist or not
-
     const user = await userModel.findOne({ email });
     if (!user) {
       return res.status(401).json({
@@ -72,18 +71,15 @@ const logedUser = async (req, res) => {
     }
 
     //valid password or not
-
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(401).json({
         success: false,
         message: "Please provide a valid password ",
       });
-      
     }
 
     //token assigning
-
     const token = jwt.sign({ name: user.name }, process.env.JWT_SECRET, {
       expiresIn: "2h",
     });
@@ -100,5 +96,19 @@ const logedUser = async (req, res) => {
     });
   }
 };
+
+
+//FORGOT PASSWORD
+
+const transporter = nodemailer.createTransport({
+  service:"gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, 
+  auth: {
+    user: process.env.APP_USER, //sender address
+    pass: process.env.APP_PASSWORD, //app password from the gmail account
+  },
+});
 
 export { registerUser, logedUser };
