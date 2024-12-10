@@ -4,6 +4,7 @@ const SignUpSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
   email: {
     type: String,
@@ -15,6 +16,6 @@ const SignUpSchema = new mongoose.Schema({
   },
 });
 
-const SignupModel = mongoose.model("Signup" , SignUpSchema)
+const SignupModel = mongoose.model("Signup", SignUpSchema);
 
 export default SignupModel;
