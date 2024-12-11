@@ -133,7 +133,7 @@ const forgotPassword = async (req, res) => {
       },
       to: email, // list of receivers
       subject: "Reset password of your account",
-      text: `http://localhost:5173/reset-password/${token}`, // plain text body
+      text: `http://localhost:5173/reset-password/${token}`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -155,4 +155,50 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-export { registerUser, logedUser , forgotPassword };
+//RESET PASSWORD
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+    const id = decoded.id;
+
+    //validate the password
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid password",
+      });
+    }
+
+    //checking if both passwords are same
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Password doesn't match",
+      });
+    }
+
+    //hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = await userModel.findByIdAndUpdate(
+      { _id: id },
+      { password: hashedPassword }
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export { registerUser, logedUser, forgotPassword , resetPassword };
