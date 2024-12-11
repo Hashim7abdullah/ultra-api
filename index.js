@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/database.js";
 import userRouter from "./Routes/userRouter.js";
+import mainRouter from "./Routes/mainRoutes.js";
 
 //env configuration
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(cookieParser());
 
 //api endpoints
 app.use("/api/user", userRouter);
+app.use("/api/auth", mainRouter);
 
 //connect database
 connectDB();
