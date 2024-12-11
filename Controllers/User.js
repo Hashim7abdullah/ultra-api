@@ -97,18 +97,62 @@ const logedUser = async (req, res) => {
   }
 };
 
-
 //FORGOT PASSWORD
 
-const transporter = nodemailer.createTransport({
-  service:"gmail",
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, 
-  auth: {
-    user: process.env.APP_USER, //sender address
-    pass: process.env.APP_PASSWORD, //app password from the gmail account
-  },
-});
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-export { registerUser, logedUser };
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not registered" });
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "5m",
+    });
+
+    //nodemailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.APP_USER, //sender address
+        pass: process.env.APP_PASSWORD, //app password from the gmail account
+      },
+    });
+
+    const mailOptions = {
+      from: {
+        name: "Ultra",
+        address: process.env.APP_USER,
+      },
+      to: email, // list of receivers
+      subject: "Reset password of your account",
+      text: `http://localhost:5173/reset-password/${token}`, // plain text body
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: "error sending message",
+        });
+      } else {
+        return res.status(200).json({
+          success: true,
+          message: "Email sent",
+        });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export { registerUser, logedUser , forgotPassword };
