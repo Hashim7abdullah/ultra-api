@@ -13,7 +13,7 @@ const registerUser = async (req, res) => {
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
       return res
-        .status(401)
+        .status(400)
         .json({ success: false, message: "User already exist" });
     }
 
