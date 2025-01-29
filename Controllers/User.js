@@ -4,7 +4,7 @@ import userModel from "../Models/User.js";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
-//register user
+//registering a  user
 const registerUser = async (req, res) => {
   try {
     const { email, password, name } = req.body;
